@@ -1,0 +1,29 @@
+<?php
+include_once '../../config/config.php';
+include_once '../../src/Controller/CustomerController.php';
+
+$customerController = new CustomerController($conn);
+$customers = $customerController->getAllCustomers();
+
+include '../../views/header.php';
+?>
+<h1>Manage Customers</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Created At</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($customers as $customer): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($customer['name']); ?></td>
+            <td><?php echo htmlspecialchars($customer['email']); ?></td>
+            <td><?php echo htmlspecialchars($customer['created_at']); ?></td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+<?php include '../../views/footer.php'; ?>
