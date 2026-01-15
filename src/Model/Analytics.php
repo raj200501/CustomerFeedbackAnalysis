@@ -1,28 +1,26 @@
 <?php
 
+namespace App\Model;
+
+use App\Entity\AnalyticsEntry;
+use App\Repository\AnalyticsRepository;
+
 class Analytics
 {
-    private $conn;
+    private AnalyticsRepository $repository;
 
-    public function __construct($conn)
+    public function __construct(AnalyticsRepository $repository)
     {
-        $this->conn = $conn;
+        $this->repository = $repository;
     }
 
-    public function addAnalytics($feedbackId, $keyword, $sentimentScore)
+    public function addAnalytics(int $feedbackId, string $keyword, float $sentimentScore): AnalyticsEntry
     {
-        $stmt = $this->conn->prepare("INSERT INTO analytics (feedback_id, keyword, sentiment_score) VALUES (:feedback_id, :keyword, :sentiment_score)");
-        $stmt->execute([
-            'feedback_id' => $feedbackId,
-            'keyword' => $keyword,
-            'sentiment_score' => $sentimentScore,
-        ]);
+        return $this->repository->create($feedbackId, $keyword, $sentimentScore);
     }
 
-    public function getAnalytics()
+    public function getAnalytics(): array
     {
-        $stmt = $this->conn->query("SELECT * FROM analytics");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->repository->all();
     }
 }
-?>

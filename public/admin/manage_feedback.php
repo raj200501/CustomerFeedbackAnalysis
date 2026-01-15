@@ -1,38 +1,78 @@
 <?php
-include_once '../../config/config.php';
-include_once '../../src/Controller/FeedbackController.php';
+require_once __DIR__ . '/../../config/config.php';
 
-$feedbackController = new FeedbackController($conn);
-$feedbacks = $feedbackController->getAllFeedback();
+use App\Support\Html;
 
-include '../../views/header.php';
+$basePath = $app->config()->basePath();
+$feedbacks = $app->feedbackRepository()->all();
+$analyticsRepository = $app->analyticsRepository();
+$responseRepository = $app->feedbackResponseRepository();
+
+include __DIR__ . '/../../views/header.php';
 ?>
-<h1>Manage Feedback</h1>
-<table>
-    <thead>
-        <tr>
-            <th>Customer</th>
-            <th>Feedback</th>
-            <th>Rating</th>
-            <th>Type</th>
-            <th>Submitted At</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($feedbacks as $feedback): ?>
-        <tr>
-            <td><?php echo htmlspecialchars($feedback['name']); ?></td>
-            <td><?php echo htmlspecialchars($feedback['feedback_text']); ?></td>
-            <td><?php echo htmlspecialchars($feedback['rating']); ?></td>
-            <td><?php echo htmlspecialchars($feedback['feedback_type']); ?></td>
-            <td><?php echo htmlspecialchars($feedback['created_at']); ?></td>
-            <td>
-                <a href="respond.php?feedback_id=<?php echo $feedback['id']; ?>">Respond</a>
-                <a href="delete_feedback.php?feedback_id=<?php echo $feedback['id']; ?>">Delete</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
-<?php include '../../views/footer.php'; ?>
+<section class="page">
+    <h1>Manage Feedback</h1>
+    <p>Review feedback, respond to customers, or remove entries.</p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Feedback</th>
+                <th>Rating</th>
+                <th>Type</th>
+                <th>Keywords</th>
+                <th>Responses</th>
+                <th>Submitted At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (!$feedbacks): ?>
+                <tr>
+                    <td colspan="8">No feedback yet.</td>
+                </tr>
+            <?php endif; ?>
+            <?php foreach ($feedbacks as $feedback): ?>
+                <?php $analytics = $analyticsRepository->forFeedback($feedback->id()); ?>
+                <?php $responses = $responseRepository->forFeedback($feedback->id()); ?>
+                <tr>
+                    <td><?php echo Html::escape($feedback->customerName()); ?></td>
+                    <td><?php echo Html::escape($feedback->feedbackText()); ?></td>
+                    <td><?php echo Html::escape((string) $feedback->rating()); ?></td>
+                    <td><?php echo Html::escape($feedback->feedbackType()); ?></td>
+                    <td>
+                        <?php if ($analytics): ?>
+                            <ul class="tag-list">
+                                <?php foreach ($analytics as $entry): ?>
+                                    <li><?php echo Html::escape($entry->keyword()); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php else: ?>
+                            <em>No keywords</em>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if ($responses): ?>
+                            <ul class="response-list">
+                                <?php foreach ($responses as $response): ?>
+                                    <li><?php echo Html::escape($response->responseText()); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php else: ?>
+                            <em>No responses</em>
+                        <?php endif; ?>
+                    </td>
+                    <td><?php echo Html::escape($feedback->createdAt()); ?></td>
+                    <td>
+                        <a href="<?php echo $basePath; ?>admin/respond.php?feedback_id=<?php echo Html::escape((string) $feedback->id()); ?>">Respond</a>
+                        <a class="danger" href="<?php echo $basePath; ?>admin/delete_feedback.php?feedback_id=<?php echo Html::escape((string) $feedback->id()); ?>" onclick="return confirm('Delete this feedback?');">Delete</a>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <a class="button" href="<?php echo $basePath; ?>index.php">Back to dashboard</a>
+</section>
+<?php include __DIR__ . '/../../views/footer.php'; ?>

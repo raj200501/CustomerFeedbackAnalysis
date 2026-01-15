@@ -1,25 +1,26 @@
 <?php
 
+namespace App\Model;
+
+use App\Entity\Customer as CustomerEntity;
+use App\Repository\CustomerRepository;
+
 class Customer
 {
-    private $conn;
+    private CustomerRepository $repository;
 
-    public function __construct($conn)
+    public function __construct(CustomerRepository $repository)
     {
-        $this->conn = $conn;
+        $this->repository = $repository;
     }
 
-    public function addCustomer($name, $email)
+    public function addCustomer(string $name, string $email): CustomerEntity
     {
-        $stmt = $this->conn->prepare("INSERT INTO customers (name, email) VALUES (:name, :email)");
-        $stmt->execute(['name' => $name, 'email' => $email]);
-        return $this->conn->lastInsertId();
+        return $this->repository->create($name, $email);
     }
 
-    public function getAllCustomers()
+    public function getAllCustomers(): array
     {
-        $stmt = $this->conn->query("SELECT * FROM customers");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->repository->all();
     }
 }
-?>

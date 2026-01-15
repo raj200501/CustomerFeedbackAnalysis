@@ -1,18 +1,20 @@
 <?php
 
+namespace App\Controller;
+
+use App\Repository\AnalyticsRepository;
+
 class AnalyticsController
 {
-    private $conn;
+    private AnalyticsRepository $repository;
 
-    public function __construct($conn)
+    public function __construct(AnalyticsRepository $repository)
     {
-        $this->conn = $conn;
+        $this->repository = $repository;
     }
 
-    public function getAnalytics()
+    public function all(): array
     {
-        $stmt = $this->conn->query("SELECT * FROM analytics");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->repository->all();
     }
 }
-?>

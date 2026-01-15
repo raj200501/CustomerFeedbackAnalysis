@@ -1,33 +1,27 @@
 <?php
 
+namespace App\Controller;
+
+use App\Service\FeedbackService;
+use App\Validation\ValidationResult;
+
 class FeedbackController
 {
-    private $conn;
+    private FeedbackService $service;
 
-    public function __construct($conn)
+    public function __construct(FeedbackService $service)
     {
-        $this->conn = $conn;
+        $this->service = $service;
     }
 
-    public function submitFeedback($name, $email, $feedback, $rating, $feedback_type)
+    public function submit(array $payload): array
     {
-        $stmt = $this->conn->prepare("INSERT INTO customers (name, email) VALUES (:name, :email)");
-        $stmt->execute(['name' => $name, 'email' => $email]);
-        $customerId = $this->conn->lastInsertId();
-
-        $stmt = $this->conn->prepare("INSERT INTO feedback (customer_id, feedback_text, rating, feedback_type) VALUES (:customer_id, :feedback_text, :rating, :feedback_type)");
-        $stmt->execute([
-            'customer_id' => $customerId,
-            'feedback_text' => $feedback,
-            'rating' => $rating,
-            'feedback_type' => $feedback_type,
-        ]);
+        $result = $this->service->submit($payload);
+        return $result;
     }
 
-    public function getAllFeedback()
+    public function validationResult(array $result): ValidationResult
     {
-        $stmt = $this->conn->query("SELECT f.*, c.name FROM feedback f JOIN customers c ON f.customer_id = c.id");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $result['validation'] ?? new ValidationResult();
     }
 }
-?>
