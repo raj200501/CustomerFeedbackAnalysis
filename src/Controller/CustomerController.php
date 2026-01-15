@@ -1,18 +1,20 @@
 <?php
 
+namespace App\Controller;
+
+use App\Repository\CustomerRepository;
+
 class CustomerController
 {
-    private $conn;
+    private CustomerRepository $repository;
 
-    public function __construct($conn)
+    public function __construct(CustomerRepository $repository)
     {
-        $this->conn = $conn;
+        $this->repository = $repository;
     }
 
-    public function getAllCustomers()
+    public function all(): array
     {
-        $stmt = $this->conn->query("SELECT * FROM customers");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->repository->all();
     }
 }
-?>

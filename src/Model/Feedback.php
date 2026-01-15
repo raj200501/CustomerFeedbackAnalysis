@@ -1,29 +1,26 @@
 <?php
 
+namespace App\Model;
+
+use App\Entity\Feedback as FeedbackEntity;
+use App\Repository\FeedbackRepository;
+
 class Feedback
 {
-    private $conn;
+    private FeedbackRepository $repository;
 
-    public function __construct($conn)
+    public function __construct(FeedbackRepository $repository)
     {
-        $this->conn = $conn;
+        $this->repository = $repository;
     }
 
-    public function submitFeedback($customerId, $feedbackText, $rating, $feedbackType)
+    public function submitFeedback(int $customerId, string $feedbackText, int $rating, string $feedbackType): FeedbackEntity
     {
-        $stmt = $this->conn->prepare("INSERT INTO feedback (customer_id, feedback_text, rating, feedback_type) VALUES (:customer_id, :feedback_text, :rating, :feedback_type)");
-        $stmt->execute([
-            'customer_id' => $customerId,
-            'feedback_text' => $feedbackText,
-            'rating' => $rating,
-            'feedback_type' => $feedbackType,
-        ]);
+        return $this->repository->create($customerId, $feedbackText, $rating, $feedbackType);
     }
 
-    public function getAllFeedback()
+    public function getAllFeedback(): array
     {
-        $stmt = $this->conn->query("SELECT f.*, c.name FROM feedback f JOIN customers c ON f.customer_id = c.id");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->repository->all();
     }
 }
-?>
